@@ -9,18 +9,19 @@ from routeros_api import exceptions
 from routeros_api import resource
 
 
-def connect(host, username='admin', password='', port=8728):
-    return RouterOsApiPool(host, username, password, port).get_api()
+def connect(host, username='admin', password='', port=8728, ca_cert=None):
+    return RouterOsApiPool(host, username, password, port, ca_cert).get_api()
 
 
 class RouterOsApiPool(object):
     socket_timeout = 15.
 
-    def __init__(self, host, username='admin', password='', port=8728):
+    def __init__(self, host, username='admin', password='', port=8728, ca_cert=None):
         self.host = host
         self.username = username
         self.password = password
         self.port = port
+        self.ca_cert = None
         self.connected = False
         self.socket = api_socket.DummySocket()
         self.communication_exception_parser = (
@@ -29,7 +30,7 @@ class RouterOsApiPool(object):
     def get_api(self):
         if not self.connected:
             self.socket = api_socket.get_socket(self.host, self.port,
-                                                timeout=self.socket_timeout)
+                                                timeout=self.socket_timeout, ca_cert=self.ca_cert)
             base = base_api.Connection(self.socket)
             communicator = api_communicator.ApiCommunicator(base)
             self.api = RouterOsApi(communicator)
